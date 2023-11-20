@@ -1,57 +1,72 @@
 let listaDanych; 
-const inputFile = 'data.json'; //przypisanie pliku .json
-fetch(inputFile) //odczytywanie danych z pliku data.json
+const inputFile = 'data.json';  //przypisanie pliku .json
+fetch(inputFile)    //odczytywanie danych z pliku data.json
     .then(response => response.json())
-    .then(jsonData => { //formowaie układu danych
+    .then(jsonData => {     //formowaie układu danych
         listaDanych = jsonData.rows.map(row => ({ 
             title: `${row.person}`,
+            replaced_by: `${row.replaced_by}`,
             start: row.leave_start,
             allDay: true,
-            description: `zastępstwo: ${row.replaced_by}`,
-            leave_type: row.leave_type
+            leave_type: row.leave_type,
+            // mozna stworzyc liste z opisanymi typani rodzaju zwolnien odpowiadającej indexami leave_type - 1
+            description: `<br>od ${row.leave_start} <br>do ${row.leave_end}`,
         }));
         init();
     })
     .catch(error => console.error('Error fetching JSON:', error));
 
-const rodzajZwolnieniaKolor = ["red","orange","yellow","lime","green","aqua","blue","purple","pink"];
-const rodzajZwolnienia = ["czerwony", "pomarańczowy", "zolty", "lime", "zielony", "aqua", "niebieski", "fioletowy", "rozowy"]; // przypisać kazdy z rodzaji zwolnien
 const init = () => {
-    const glownyKalendarz = document.querySelector('#glowny-kalendarz');  //pobranie glównego kontenera
-    const kalendarz = new FullCalendar.Calendar(glownyKalendarz, { //tworzenie kalendarzu na stronie
-        locale: 'pl',
-        initialView: 'dayGridMonth',
+    const glownyKalendarz = document.querySelector('#glowny-kalendarz');    //pobranie glównego kontenera
+    const dialog = $('#dialog').dialog({  // Use jQuery to initialize the dialog
+        autoOpen: false,  // Set to false initially
+    });
+    const kalendarz = new FullCalendar.Calendar(glownyKalendarz, {  //tworzenie kalendarzu na stronie
+        locale: 'pl',   // ustawienie języka wyświetlanych danych na polski
+        initialView: 'dayGridMonth',    //defaultowy widok
         headerToolbar: {
-            start: 'prev today next',
+            start: 'tytul',
             center: 'title',
-            end: 'multiMonthYear,dayGridMonth,listWeek prevYear,nextYear',
+            end: 'today multiMonthYear,dayGridMonth,listWeek prevYear,prev,next,nextYear',
             eventDisplay: 'display'
         },
-        eventLimit: true,
-        firstDay: 1,
-        events: listaDanych,
-        eventRender: function (info) { const leaveType = info.event.extendedProps.leave_type;
-            const leaveTypeIndex = leaveType - 1; // leave_type zaczyna sie od 1, dane w tabeli od 0
-            info.el.style.backgroundColor = rodzajZwolnieniaKolor[leaveTypeIndex];
+        events: function (fetchInfo, successCallback, failureCallback) {
+            if (listaDanych) {
+                successCallback(listaDanych);
+            } else {
+                failureCallback(new Error('Data not available.'));
+            }
         },
-        dateClick: function (info) {
-            zmianaDaty(kalendarz, info.date);
-            console.log(info.date);
+        dayMaxEventRows: 3,     //ilosc urlopow wyswietlanych w 1 dniu - widok: miesiac
+        eventLimitClick: 'popover',
+        firstDay: 1,    // rozpoczecie tygodnia od poniedzialku, nie niedzieli (0, default)
+        eventClick: function(info){
+            dialog.dialog('open');  //otwarcie dailogu
+            dialog.dialog('option', 'title', info.event.title); //nadanie nowego tytulu
+            dialog.html(info.event.extendedProps.replaced_by+info.event.extendedProps.description); //stworzenie opisu
+        },
+        customButtons: {
+            tytul: {
+                text: 'title', //zmienic na current miesiac
+                click: function(miesiac) {
+                    kalendarz.getOption('customButtons')['tytul'].text = miesiac;
+                    if (!isNaN(miesiac) && miesiac >= 1 && miesiac <= 12) {
+                        kalendarz.gotoDate(`${miesiac}-01`);
+                        console.log(`${miesiac}-01`);
+                    } else {
+                        window.alert("Niepoprawne dane");
+                    }
+                }
+            }
         }
     });
     kalendarz.render();
-    const wyborDaty = document.querySelector('#wybor-daty');
-    wyborDaty.onclick = () => {
-        const miesiac = parseInt(document.querySelector('#wybor-daty-data').value); 
-        if (!isNaN(miesiac) && miesiac >= 1 && miesiac <= 12) {
-            zmianaDaty(kalendarz.gotoDate(new Date(new Date().getFullYear(), miesiac - 1, 1)));
-        } else {
-            window.alert("Niepoprawne dane");
+    const dataPicker = document.querySelector('#wybor-daty-data');
+    dataPicker.onchange = () => {   
+        if(dataPicker.value !== null){
+            kalendarz.getOption('customButtons')['tytul'].click(dataPicker.value);
+            console.log("wyslanie danych do custombutton: ", dataPicker.value);
         }
-    };
-    const zmianaDaty = (calendar, newDate) => {
-        calendar.gotoDate(newDate);
-        calendar.setOption('events', listaDanych);
-    };
+    }
 };
 document.addEventListener('DOMContentLoaded', init);
