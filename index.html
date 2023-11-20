@@ -6,6 +6,10 @@
     <link rel="stylesheet" href="./style.css">
     <!-- fullCalendar 6.1.9 -->
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js'></script>
+    <!-- jQuery  -->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <!-- skrypt -->
     <script src="./main.js" defer></script>
     <title>Kalendarz urlopu</title>
@@ -14,15 +18,13 @@
     <div id="kontener-boczny">
         <form id="date-picker">
             <label>
-                <span class="tekst">WYBÓR DATY</span> <!-- dodac info icon? -->
-                <input type="number" id="wybor-daty-data">
+                <span class="tekst">WYBÓR DATY</span> 
+                <input type="month" id="wybor-daty-data">
             </label>
             <button type="submit" form="date-picker" id="wybor-daty" >WYBIERZ</button>
         </form>
-        <div id="informacje-event">
-            <span class="tekst" style="font-size: 12px;">INFORMACJE DOTYCZACE URLOPU</span>
-            <span id="tytul-eventu">nazwisko</span>
-            <span id="opis-eventu">zwolnienie, zastepstwo, data rozpoczecia i zakonczenia</span>
+        <div id="dialog" title="event informacje">
+            <p></p>
         </div>
     </div>
     <div id="glowny-kalendarz"></div>
