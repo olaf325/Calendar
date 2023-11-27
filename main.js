@@ -8,6 +8,8 @@ let listaDanych;
 const urlopKolory = ['#CC444B', '#501537', '#824C71', '#D4E79E', '#9FBBCC', '#DCCCA3', '#0F4C5C', '#846C5B', '#C4B2BC', '#4E937A', '#B4656F'];
 const urlopLista = ["urlop wypoczynkowy", "typ2", "typ3", "typ4", "typ5", "typ6", "typ7", "typ8", "typ9", "typ10", "typ11"];
 let infromacjeFlaga = true;
+let dialogPozaFlaga = false;
+let dialogInfoPozaFlaga = false;
 
 const inputFile = 'data.json';  //przypisanie pliku .json
 fetch(inputFile)    //odczytywanie danych z pliku data.json
@@ -38,7 +40,7 @@ const init = () => {
         locale: 'pl',   // ustawienie języka wyświetlanych danych na polski
         initialView: 'dayGridMonth',    //defaultowy widok
         firstDay: 1,    // rozpoczecie tygodnia od poniedzialku, nie niedzieli (0, default)
-        dayMaxEventRows: 3,     //ilosc urlopow wyswietlanych w 1 dniu - widok: miesiac
+        dayMaxEventRows: 4,     //ilosc urlopow wyswietlanych w 1 dniu - widok: miesiac
         headerToolbar: {
             start: 'rok,miesiac,lista wyborMiesiaca',
             end: 'dzisiaj prevYear,prev,next,nextYear',
@@ -72,24 +74,17 @@ const init = () => {
             wyborMiesiaca: {
               text: moment(new Date()).format("YYYY-MM"),
               click: function() { 
-                const dataPickerInput = document.querySelector('#wybor-daty-data'); // pobranie wartosci z inputa
-                    // trzeba kliknac enter po wybraniu daty
-                // dataPickerInput.oninput = () =>{
-                //     document.addEventListener('keydown', function (event) {
-                //         const klawisz = event.key;
-                //         if(dataPickerInput.value.length !== 0 && klawisz =='Enter'){ //sprawdzenie czy nie jest pusty
-                //             const data = new Date(`${dataPickerInput.value}-01`); //stworzenie daty, do ktorej ma przeniesc sie kalendarz
-                //             kalendarz.gotoDate(data); //przeniesie do danej daty
-                //         } 
-                //     });
-                // }  
-                    // bez klikania enter - wpisywanie daty recznie powoduje ciagłe renderowanie kalendarza przed wpisaniem roku, w wyniku nie da sie wpisac 2023 - zostaje zamienione na 1902, 0, 1902, 1903
-                dataPickerInput.onchange = () => {
-                    if(dataPickerInput.ariaValueMax.length > 0){
-                        const data = new Date(`${dataPickerInput.value}-01`); //stworzenie daty, do ktorej ma przeniesc sie kalendarz
-                        kalendarz.gotoDate(data); //przeniesie do danej daty
-                    }
-                }
+                $("#datepicker").datepicker({
+                    changeMonth: true,
+                    changeYear: true
+                });
+            
+                $("#datepicker").on("change", () => {
+                    console.log($("#datepicker").val());
+                    const data = moment($("#datepicker").val()).format("YYYY-MM-DD");
+                    kalendarz.gotoDate(data);
+                    $("#datepicker").blur();
+                });
               }
             }
         },
@@ -99,29 +94,46 @@ const init = () => {
             } else {
                 failureCallback(new Error('Data not available.'));
             }
-            
         },
         eventClick: function(info){
-            dialog.dialog('close'); //zamkniecie jakichkolwiek wcześniej otwartych dialogów
-            dialog.dialog('open');  //otwarcie dailogu
+            dialog.dialog('open');
+            dialogPozaFlaga = true;
             dialog.dialog({
                 title: info.event.title,
-                width: 600,
-                position: { my: 'left top', at: 'right bottom'} //ułożenie dialogu w miejscu kursora               
+                    width: 600,
+                    show: { //efekt podczas otwierania dialogu
+                        effect: "fade",
+                        duration: 150
+                    },
+                    hide: { //efekt podczas zamykania dialogu
+                        effect: "fade",
+                        duration: 150
+                    },
+                    clickOutside: true,
+                    clickOutsideTrigger: "#dialog"    
             });
             dialog.html(info.event.extendedProps.description); //stworzenie opisu
+            
+            $(document).on("mousedown", function (event) { //funkcja urochamia sie podczas kliknięcia myszą 
+                const isClickInsideDialog = $(event.target).closest("#dialog").length > 0; //sprawdza czy uzytkownik kliknął wewnątrz dialogu, jeśli tak przyjmuje wartość true
+                if (!isClickInsideDialog && dialogPozaFlaga == true) { //jezeli nie kliknieto w dialog i dialog otwarty
+                    dialogPozaFlaga = false; 
+                    dialog.dialog('close'); //zamkniecie dialogu
+                }
+            });
         },
         displayEventTime: false,
         initialDate: moment(new Date()).format("YYYY-MM-DD"),   //ustawienie początkowego roku
     });
     kalendarz.render();
     const zmianaDatyInput = () => {
-        $('#wybor-daty-data').val(moment(kalendarz.getDate().toISOString()).format("YYYY-MM"));
+        $('#datepicker').val(moment(kalendarz.getDate().toISOString()).format("YYYY-MM")); //wpisanie value inputa jako data wyświetlanego kalendarza
     };
     kalendarz.setOption('datesSet', (info) => {
         zmianaDatyInput();        
     });
-    kalendarz.getOption('customButtons')['wyborMiesiaca'].click(); 
+    kalendarz.getOption('customButtons')['wyborMiesiaca'].click(); //wywołonie funkcji odpowiedzialnej za wyszukiwanie daty - inaczej nie da sie wyszukac daty
+    
     const informacje = document.querySelector('#informacje');
     informacje.onclick = (e) => { 
         if(infromacjeFlaga == true){ //blokowanie ciągłego dodawania tych samych danych do dialogu, ponowne kliknięcie obrazka spowoduje, że dialog sie zamknie
@@ -139,14 +151,20 @@ const init = () => {
             dialogInfo.dialog('close');
             infromacjeFlaga = true;
         }
+        $(document).on("mousedown", function (event) { 
+            const isClickInsideDialogInfo = $(event.target).closest("#dialog-info").length > 0; //sprawdza czy uzytkownik kliknął wewnątrz dialogu, jeśli tak przyjmuje wartość true
+            if (!isClickInsideDialogInfo && dialogInfoPozaFlaga == true) { //jezeli nie kliknieto w dialog i dialog otwarty
+                dialogInfoPozaFlaga = false; 
+                dialogInfo.dialog('close'); //zamkniecie dialogu
+            }
+        });
     }
-
     document.addEventListener('keydown', function (event) {
         const klawisz = event.key;
         if (klawisz === '/') {
             // po kliknięciu '/' przenosi do inputa
             event.preventDefault();
-            document.querySelector('#wybor-daty-data').focus();
+            document.querySelector('#datepicker').focus();
         }
     });
 };
