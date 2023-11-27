@@ -42,6 +42,7 @@ button.fc-wyborMiesiaca-button.fc-button-primary{
 }
 .fc-daygrid-dot-event .fc-event-title {
     font-weight: 500;
+    font-size: 1em;
 }
 .fc .fc-daygrid-day-number {
     font-weight: 800;
