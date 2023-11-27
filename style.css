@@ -1,48 +1,48 @@
-* {
+ * {
     padding: 0;
     margin: 0;
     font-family: sans-serif;
-    font-size: 2.2vh;
+    font-size: 2vh;
 }
-#kontener-boczny {
-    width: 17%;
+#wyszukiwanie{
+    width: 100vw;
+    height: fit-content;
     display: flex;
-    float: left;
+    order: 1;
+    align-items: center;
+    flex-direction: row;
     background-color: rgb(240, 240, 240);
-    padding: 0.5vh 0.5vw;
-    height: 99vh;
-    margin: 0 0.5vw 0 0;
-    flex-direction: column;
-    flex-wrap: wrap;
-}
-#glowny-kalendarz {
-    width: 80%;
-    display: flex;
-    float: right;
-    padding: 0.5vh 0.9vw 0.5vh 0.5vw;
-    height: 99vh;
+    padding: 1vh 1vw;
 }
 .tekst{
+    width: 20vw;
     letter-spacing: 1px;
     font-weight: 800;
     text-align: center;
-    display: flex;
-    order: -1;
     background-color: hsl(0, 0%, 98%);
-    border-radius: 0.05%;
-    margin: 0.3vh 0 0.5vh;
-    font-size: 2.2vh;
 }
-#informacje-event{
-    order: 3;
-    margin: 0.5vh 0 0 0;
+#wybor-daty-data{
+    width: 40vw;
+    height: 2vh;
+    margin: 0.25vh 0.2vw;
+}
+#glowny-kalendarz{
+    width: 100vw;
+    height: 90vh;
     display: flex;
-    flex-direction: column;
-    border: solid 1px #2c3e50;
-    padding: 0.1vh 0.2vw 0.1vh 0.4vw;
-    letter-spacing: 1px;
+    order: 2;
+    padding: 1vh 0.5vw;
 }
-input[type='month'], button[type='submit']{
-    height: 3vh;
-    font-size: 2vh;
+#informacje{
+    height: 2vh;
+    float: right;
+}
+button.fc-wyborMiesiaca-button.fc-button-primary{
+    display: none;
+}
+.fc-daygrid-dot-event .fc-event-title {
+    font-weight: 500;
+}
+.fc .fc-daygrid-day-number {
+    font-weight: 800;
 }
